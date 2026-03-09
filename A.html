@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>0RIGEN-ES | Cocina Exclusiva</title>
+    <style>
+        /* Diseño amigable y apetitoso: Fondo oscuro elegante, detalles en ámbar/fuego */
+        body { 
+            background-color: #0f172a; 
+            color: #f8fafc; 
+            font-family: 'Courier New', Courier, monospace; 
+            margin: 0; padding: 20px; display: flex; flex-direction: column; 
+            min-height: 100vh; box-sizing: border-box; overflow: hidden; 
+            touch-action: manipulation;
+        }
+
+        #terminal-output { align-self: flex-start; width: 100%; text-align: left; font-size: 14px; }
+        .sys-log { color: #94a3b8; margin: 0; line-height: 1.6; }
+        .prompt { color: #10b981; font-weight: bold; }
+        .highlight { color: #fbbf24; font-weight: bold; }
+
+        #final-display { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin: auto; width: 100%; }
+        
+        #brand-display { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; width: 100%; }
+        #brand-display h1 { font-size: clamp(2.5rem, 12vw, 4.5rem); letter-spacing: 3px; color: #ffffff; margin: 0; text-transform: uppercase; }
+
+        .cursor {
+            display: inline-block;
+            width: clamp(8px, 2vw, 15px); height: 1em;
+            background-color: #fbbf24;
+            animation: blink 0.9s step-end infinite;
+            margin-left: 8px;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .btn { 
+            background: transparent; border: 2px solid #fbbf24; color: #fbbf24; 
+            padding: 16px 32px; text-decoration: none; font-family: inherit;
+            font-weight: bold; cursor: pointer; display: inline-block;
+            width: 85%; max-width: 300px; font-size: 16px; margin-top: 20px;
+            border-radius: 8px; transition: all 0.3s ease; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:hover { background: #fbbf24; color: #0f172a; }
+
+        #boot-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #0f172a; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 1000; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="boot-overlay">
+        <div style="color:#f8fafc; margin-bottom:25px; font-weight: bold; text-align: center; font-size: 16px;">
+            ACCESO A COCINA<br><span style="color:#fbbf24; font-size: 24px; letter-spacing: 2px;">0RIGEN-ES</span>
+        </div>
+        <p style="color: #64748b; font-size: 11px; margin-bottom: 15px;">(Sube el volumen de tu teléfono)</p>
+        
+        <button id="start-button" class="btn" type="button">[ ENCENDER PARRILLA ]</button>
+    </div>
+
+    <div id="terminal-output"></div>
+
+    <div id="final-display">
+        <div id="brand-display">
+            <h1 id="brand-text"></h1><span class="cursor"></span>
+        </div>
+        <div style="color: #94a3b8; font-size: 13px; margin-bottom: 25px; letter-spacing: 1px;">
+            LA KENNEDY | QUITO<br>
+            <span style="color: #fbbf24; font-weight: bold;">LOTE 01 DISPONIBLE | 50 UDS</span>
+        </div>
+        <a href="https://wa.me/593XXXXXXXXX?text=Hola,%20quiero%20pedir%20del%20Lote%2001%20de%200rigen-es" class="btn">PEDIR POR WHATSAPP</a>
+    </div>
+
+    <script>
+        const logs = [
+            ["[COCINA] ESTADO: ", "PREPARANDO"],
+            ["[UBICACIÓN] SECTOR: ", "LA KENNEDY, QUITO"],
+            ["chef@0rigen-es:~$ ", "calentar_planchas --temp max"],
+            ["[ OK ] TEMPERATURA: ", "FUEGO ALTO"],
+            ["chef@0rigen-es:~$ ", "verificar_inventario --carnes"],
+            ["[ INFO ] CORTES: ", "50 UNIDADES PREMIUM"],
+            ["chef@0rigen-es:~$ ", "clear"]
+        ];
+
+        let audioCtx = null;
+
+        function playKeySound() {
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine'; 
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.02);
+                
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime); 
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.02);
+            } catch (e) {
+                // Silencio en caso de error para que no se detenga la animación
+            }
+        }
+
+        const startBtn = document.getElementById('start-button');
+
+        // CLIC A PRUEBA DE FALLOS: Primero quita la pantalla, luego piensa en el audio.
+        startBtn.addEventListener('click', function() {
+            // 1. Ocultar la capa superior INMEDIATAMENTE
+            document.getElementById('boot-overlay').style.display = 'none';
+
+            // 2. Intentar cargar el audio envuelto en Try/Catch (Si falla, no bloquea el resto)
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                
+                // Golpe de audio mudo para despertar a iOS
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(0);
+                osc.stop(0.001);
+            } catch (error) {
+                console.warn("Audio bloqueado por el navegador. Continuando sin sonido.");
+            }
+
+            // 3. Iniciar animación de texto
+            setTimeout(() => typeLogs(0), 150);
+        });
+
+        async function typeLogs(i) {
+            const output = document.getElementById('terminal-output');
+            if (i < logs.length) {
+                const p = document.createElement('p');
+                p.className = logs[i][0].includes('chef') ? 'prompt' : 'sys-log';
+                output.appendChild(p);
+
+                for (let char of logs[i][0]) {
+                    p.innerHTML += char;
+                    playKeySound();
+                    await new Promise(r => setTimeout(r, 15));
+                }
+
+                const span = document.createElement('span');
+                span.className = 'highlight';
+                p.appendChild(span);
+                for (let char of logs[i][1]) {
+                    span.innerHTML += char;
+                    playKeySound();
+                    await new Promise(r => setTimeout(r, 15));
+                }
+                
+                setTimeout(() => typeLogs(i + 1), 100);
+            } else {
+                setTimeout(() => {
+                    output.style.display = 'none';
+                    showBrand();
+                }, 300);
+            }
+        }
+
+        async function showBrand() {
+            document.getElementById('final-display').style.display = 'flex';
+            const text = "0RIGEN-ES";
+            for (let char of text) {
+                document.getElementById('brand-text').textContent += char;
+                playKeySound();
+                await new Promise(r => setTimeout(r, 70)); 
+            }
+        }
+    </script>
+</body>
+</html>
